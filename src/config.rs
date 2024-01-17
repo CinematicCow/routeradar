@@ -14,30 +14,12 @@ pub enum Mode {
 }
 
 /// Represents a route with its properties.
-#[derive(Serialize, Deserialize, JsonSchema, Debug)]
+#[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
 pub struct Route {
     /// The path of the route.
     pub path: String,
-    /// Indicates if the route is dynamic.
-    // pub dynamic: Option<bool>,
-    /// Indicates if the route is a catch-all.
-    // pub catch_all: Option<bool>,
     /// Children routes of the current route.
-    pub children: Option<Vec<Route>>,
-}
-
-impl fmt::Display for Route {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.path)?;
-
-        if let Some(children) = &self.children {
-            for child in children {
-                write!(f, "\n  └── {}", child)?;
-            }
-        }
-
-        Ok(())
-    }
+    pub children: Vec<Route>,
 }
 
 /// Represents a routing configuration.

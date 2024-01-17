@@ -8,5 +8,3 @@ pub mod config;
 /// Scanner module for routeradar
 pub mod scanner;
 
-/// Trie data structure for managing routes in Routeradar
-pub mod trie;
