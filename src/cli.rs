@@ -1,4 +1,4 @@
-use crate::config;
+// use crate::config;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 #[derive(Debug, Parser)]
@@ -9,8 +9,8 @@ pub(super) struct Args {
     pub(super) config: Option<PathBuf>,
 
     /// set operation mode
-    #[arg(short, long, value_name = "MODE")]
-    pub(super) mode: Option<config::Mode>,
+    // #[arg(short, long, value_name = "MODE")]
+    // pub(super) mode: Option<config::Mode>,
 
     /// set path manually
     #[arg(short, long, value_name = "PATH")]

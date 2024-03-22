@@ -3,9 +3,10 @@
 
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
-use routeradar::{config::{self, Mode}, scanner};
-
+use routeradar::{
+    config::{self, Mode},
+    scanner,
+};
 
 mod cli;
 use cli::*;
@@ -18,7 +19,7 @@ fn main() {
     // file.write_all(schema_json.as_bytes()).unwrap();
     let Args {
         config,
-        mode,
+        // mode,
         path,
         command,
     } = <Args as clap::Parser>::parse();
@@ -26,8 +27,7 @@ fn main() {
 
     match command {
         Commands::Init => {
-
-            let mode = Mode::get_mode(&args.path.unwrap());
+            let mode = Mode::get_mode(&path.unwrap());
 
             println!("{:?}", mode);
 
@@ -36,9 +36,7 @@ fn main() {
             } else {
                 match mode {
                     Ok(mode) => {
-
-                        path = mode.get_root_path();
-
+                        path2 = mode.get_root_path();
                     }
                     Err(error) => {
                         println!("{}", error)
@@ -51,7 +49,7 @@ fn main() {
         Commands::Show => {
             let mode = config::Mode::Svelte;
 
-            let args_path = PathBuf::from(args.path.unwrap()).canonicalize().unwrap();
+            let args_path = PathBuf::from(path.unwrap()).canonicalize().unwrap();
             // let relative_path = scanner::get_root_path(&mode);
             let relative_path = mode.get_root_path();
 
@@ -67,8 +65,7 @@ fn main() {
         }
         Commands::Gen => todo!(),
         Commands::Deb => {
-
-            let mode = Mode::get_mode(&args.path.unwrap());
+            let mode = Mode::get_mode(&path.unwrap());
 
             match mode {
                 Ok(mode) => {
