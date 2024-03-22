@@ -6,42 +6,9 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use routeradar::{config::{self, Mode}, scanner};
 
-#[derive(Debug, Parser)]
-#[command(author, version, about, long_about=None, arg_required_else_help=true)]
-struct Args {
-    /// set custom config file
-    #[arg(short, long, value_name = "FILE")]
-    config: Option<PathBuf>,
 
-    /// set operation mode
-    #[arg(short, long, value_name = "MODE")]
-    mode: Option<config::Mode>,
-
-    /// set path manually
-    #[arg(short, long, value_name = "PATH")]
-    path: Option<PathBuf>,
-
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Debug, Subcommand)]
-enum Commands {
-    /// initializes routeradar
-    Init,
-
-    /// add a new route
-    Add,
-
-    /// displays all the routes in the project
-    Show,
-
-    /// generates routes from a config file
-    Gen,
-
-    /// temp command for debug
-    Deb,
-}
+mod cli;
+use cli::*;
 
 fn main() {
     // let schema = schemars::schema_for!(config::RR);
@@ -49,34 +16,45 @@ fn main() {
     //
     // let mut file = File::create("routeradar_schema.json").unwrap();
     // file.write_all(schema_json.as_bytes()).unwrap();
-    let args = Args::parse();
-    let mut path: PathBuf = Default::default();
+    let Args {
+        config,
+        mode,
+        path,
+        command,
+    } = <Args as clap::Parser>::parse();
+    let mut path2: PathBuf = Default::default();
 
-    match &args.command {
+    match command {
         Commands::Init => {
+
             let mode = Mode::get_mode(&args.path.unwrap());
+
             println!("{:?}", mode);
 
-            if args.config.is_some() {
-                path = args.config.unwrap();
+            if config.is_some() {
+                path2 = config.unwrap();
             } else {
                 match mode {
                     Ok(mode) => {
+
                         path = mode.get_root_path();
+
                     }
                     Err(error) => {
                         println!("{}", error)
                     }
                 }
             }
-            println!("{}", path.display())
+            println!("{}", path2.display())
         }
         Commands::Add => todo!(),
         Commands::Show => {
             let mode = config::Mode::Svelte;
+
             let args_path = PathBuf::from(args.path.unwrap()).canonicalize().unwrap();
             // let relative_path = scanner::get_root_path(&mode);
             let relative_path = mode.get_root_path();
+
             let joined_path = args_path.join(&relative_path);
 
             let routes = scanner::generate_routes(&joined_path, mode.get_regex());
@@ -89,7 +67,9 @@ fn main() {
         }
         Commands::Gen => todo!(),
         Commands::Deb => {
+
             let mode = Mode::get_mode(&args.path.unwrap());
+
             match mode {
                 Ok(mode) => {
                     println!("{:?}", mode);
