@@ -1,8 +1,11 @@
 #![deny(missing_docs)]
 //! routeradar is a cli tool intended to help with file based routing for nextjs and sveltejs
 
-use routeradar::{config, scanner};
 use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use routeradar::{config::{self, Mode}, scanner};
+
 
 mod cli;
 use cli::*;
@@ -23,7 +26,9 @@ fn main() {
 
     match command {
         Commands::Init => {
-            let mode = routeradar::scanner::get_mode(&path.unwrap());
+
+            let mode = Mode::get_mode(&args.path.unwrap());
+
             println!("{:?}", mode);
 
             if config.is_some() {
@@ -31,7 +36,9 @@ fn main() {
             } else {
                 match mode {
                     Ok(mode) => {
-                        path2 = scanner::get_root_path(&mode);
+
+                        path = mode.get_root_path();
+
                     }
                     Err(error) => {
                         println!("{}", error)
@@ -43,25 +50,26 @@ fn main() {
         Commands::Add => todo!(),
         Commands::Show => {
             let mode = config::Mode::Svelte;
-            let args_path = PathBuf::from(path.unwrap()).canonicalize().unwrap();
-            let relative_path = scanner::get_root_path(&mode);
+
+            let args_path = PathBuf::from(args.path.unwrap()).canonicalize().unwrap();
+            // let relative_path = scanner::get_root_path(&mode);
+            let relative_path = mode.get_root_path();
+
             let joined_path = args_path.join(&relative_path);
 
-            let routes = scanner::generate_routes(&joined_path);
+            let routes = scanner::generate_routes(&joined_path, mode.get_regex());
             match routes {
                 Ok(data) => {
-                    let generated_routes = data.gen_route();
-                    for route in generated_routes {
-                        println!("{}", route)
-                    }
-                    data.display(0);
+                    println!("{:#?}", data)
                 }
                 Err(err) => println!("{}", err),
             }
         }
         Commands::Gen => todo!(),
         Commands::Deb => {
-            let mode = routeradar::scanner::get_mode(&path.unwrap());
+
+            let mode = Mode::get_mode(&args.path.unwrap());
+
             match mode {
                 Ok(mode) => {
                     println!("{:?}", mode);
