@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use routeradar::{config, scanner};
+use routeradar::{config::{self, Mode}, scanner};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about=None, arg_required_else_help=true)]
@@ -54,7 +54,7 @@ fn main() {
 
     match &args.command {
         Commands::Init => {
-            let mode = routeradar::scanner::get_mode(&args.path.unwrap());
+            let mode = Mode::get_mode(&args.path.unwrap());
             println!("{:?}", mode);
 
             if args.config.is_some() {
@@ -62,7 +62,7 @@ fn main() {
             } else {
                 match mode {
                     Ok(mode) => {
-                        path = scanner::get_root_path(&mode);
+                        path = mode.get_root_path();
                     }
                     Err(error) => {
                         println!("{}", error)
@@ -75,10 +75,11 @@ fn main() {
         Commands::Show => {
             let mode = config::Mode::Svelte;
             let args_path = PathBuf::from(args.path.unwrap()).canonicalize().unwrap();
-            let relative_path = scanner::get_root_path(&mode);
+            // let relative_path = scanner::get_root_path(&mode);
+            let relative_path = mode.get_root_path();
             let joined_path = args_path.join(&relative_path);
 
-            let routes = scanner::generate_routes(&joined_path);
+            let routes = scanner::generate_routes(&joined_path, mode.get_regex());
             match routes {
                 Ok(data) => {
                     println!("{:#?}", data)
@@ -88,7 +89,7 @@ fn main() {
         }
         Commands::Gen => todo!(),
         Commands::Deb => {
-            let mode = routeradar::scanner::get_mode(&args.path.unwrap());
+            let mode = Mode::get_mode(&args.path.unwrap());
             match mode {
                 Ok(mode) => {
                     println!("{:?}", mode);
