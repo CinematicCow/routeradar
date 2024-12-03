@@ -1,0 +1,29 @@
+{
+  "name": "routeradar",
+  "module": "cli/index.ts",
+  "type": "module",
+  "bin": {
+    "rr": "./build/cli/index.js"
+  },
+  "scripts": {
+    "start": "bun cli/index.ts",
+    "build:js": "bun build . --target=node --outdir=build --minify --splitting",
+    "build": "bun build:js && npm link"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/chalk": "^2.2.4",
+    "@types/commander": "^2.12.5",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^12.1.0"
+  }
+}
