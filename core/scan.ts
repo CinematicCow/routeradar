@@ -1,10 +1,9 @@
 import fs from 'fs-extra';
 import path from 'path';
-import type { Framework } from '../types';
+import { Framework } from '../types';
+import { NEXTJS_PAGE_FILE, SVELTEKIT_PAGE_FILE } from '../utils/constant';
+import type ignore from 'ignore';
 
-
-const NEXTJS_PAGE_FILE = 'index.js';
-const SVELTEKIT_PAGE_FILE = '+page.svelte';
 
 /**
  * Recursively scans a directory for routes based on the provided framework.
@@ -14,23 +13,51 @@ const SVELTEKIT_PAGE_FILE = '+page.svelte';
  * @param [basePath=''] - The base path to prepend to the routes.
  * @returns An array of routes found in the directory.
  */
-export const scanRoutes = (dir: string, framework: Framework, basePath = ''): Array<string> => {
-  const routes = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+export const scanRoutes = async (
+  dir: string,
+  framework: Framework,
+  basePath = "",
+  ignoreFilter: ReturnType<typeof ignore> | null = null,
+  memo: Set<string> = new Set()
 
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relativePath = path.join(basePath, entry.name);
-
-    if (entry.isDirectory()) {
-      routes.push(...scanRoutes(fullPath, framework, relativePath));
-    } else if (
-      (framework === 'nextjs' && entry.name === NEXTJS_PAGE_FILE) ||
-      (framework === 'sveltekit' && entry.name === SVELTEKIT_PAGE_FILE)
-    ) {
-      routes.push(basePath);
-    }
+): Promise<Array<string>> => {
+  if (memo.has(dir)) {
+    // skip already scanned dirs
+    return []
   }
+  memo.add(dir)
 
-  return routes;
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true })
+    const routes: Array<string> = []
+
+    // parallel scan baby!
+    await Promise.all(
+      entries.map(async (entry) => {
+        const fullPath = path.join(dir, entry.name)
+        const relativePath = path.join(basePath, entry.name)
+
+        // skip exclued paths
+        if (ignoreFilter && ignoreFilter.ignores(relativePath)) {
+          return
+        }
+
+        if (entry.isDirectory()) {
+          // recursively scan dirs
+          const subRoutes = await scanRoutes(fullPath, framework, relativePath, ignoreFilter, memo)
+          routes.push(...subRoutes)
+        } else if (
+
+          (framework === Framework.NEXTJS && entry.name === NEXTJS_PAGE_FILE) ||
+          (framework === Framework.SVELTEKIT && entry.name === SVELTEKIT_PAGE_FILE)
+        ) {
+          routes.push(basePath)
+        }
+      })
+    )
+    return routes
+  } catch (error) {
+    console.error(`Error scanning directory ${dir}: `, error)
+    return []
+  }
 }
