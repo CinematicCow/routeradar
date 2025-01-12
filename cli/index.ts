@@ -14,7 +14,7 @@ program
   .action(() => showRoutes(process.cwd()));
 
 program
-  .command('add <route>')
+  .command('add [route]')
   .description('Add a new route to the project')
   .action((route) => addRoute(process.cwd(), route));
 

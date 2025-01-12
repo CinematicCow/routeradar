@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { Framework } from '../types';
+import { Framework, type FrameworkConfig } from '../types';
 import { NEXTJS_PAGE_FILE, SVELTEKIT_PAGE_FILE } from '../utils/constant';
 import type ignore from 'ignore';
 
@@ -15,7 +15,7 @@ import type ignore from 'ignore';
  */
 export const scanRoutes = async (
   dir: string,
-  framework: Framework,
+  framework: FrameworkConfig,
   basePath = "",
   ignoreFilter: ReturnType<typeof ignore> | null = null,
   memo: Set<string> = new Set()
@@ -46,11 +46,7 @@ export const scanRoutes = async (
           // recursively scan dirs
           const subRoutes = await scanRoutes(fullPath, framework, relativePath, ignoreFilter, memo)
           routes.push(...subRoutes)
-        } else if (
-
-          (framework === Framework.NEXTJS && entry.name === NEXTJS_PAGE_FILE) ||
-          (framework === Framework.SVELTEKIT && entry.name === SVELTEKIT_PAGE_FILE)
-        ) {
+        } else if (entry.name === framework.pageFileName) {
           routes.push(basePath)
         }
       })

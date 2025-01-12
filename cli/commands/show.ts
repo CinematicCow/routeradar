@@ -11,17 +11,16 @@ import { getIgnoreFilter } from "../../utils/helper";
  * @param projectPath - The path to the project directory.
  */
 export const showRoutes = async (projectPath: string) => {
-  const framework = detectFramework(projectPath);
+  const framework = await detectFramework(projectPath);
   if (!framework) {
-    console.error(chalk.red('Unable to detect the framework. Make sure you\'re in a Next.js or SvelteKit project.'));
+    console.error(chalk.red('Unable to detect the framework. Make sure you\'re in a supported framework.'));
     return;
   }
 
-  const pagesDir = framework === 'nextjs' ? 'pages' : 'src/routes';
   const ignoreFilter = await getIgnoreFilter(projectPath)
-  const routes = await scanRoutes(path.join(projectPath, pagesDir), framework, "", ignoreFilter);
+  const routes = await scanRoutes(path.join(projectPath, framework.pageDir), framework, "", ignoreFilter);
 
   const routeTree = buildTree(routes);
-  console.log(chalk.blue(`Routes in your ${framework.toUpperCase()} project:`));
+  console.log(chalk.blue(`Routes in your ${framework.name.toUpperCase()} project:`));
   printTree(routeTree);
 }
